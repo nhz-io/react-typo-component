@@ -5,7 +5,7 @@ export default class TestWrapper extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = { value: 'foobar' };
     this.handleResize = this.handleResize.bind(this);
   }
 
@@ -15,5 +15,12 @@ export default class TestWrapper extends React.Component {
 
   componentWillUnmount() { window.removeEventListener('resize', this.handleResize) }
 
-  render() { return <Typo className='typo'>Foobar</Typo>; }
+  render() {
+    return(
+      <div style={{width:'100%', height: '100%'}}>
+      <Typo className='typo'>{this.state.value}</Typo><br/>
+      <textarea onChange={({target:{value}}) => { this.setState({value}) }} style={{width:'30%', height:'20%'}} value={this.state.value} />
+      </div>
+    );
+  }
 }
