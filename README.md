@@ -25,7 +25,7 @@ npm run dist
 
 ### [MIT](LICENSE)
 
-## [VERSION](HISTORY)
+## [VERSION](HISTORY.md)
 
 ### 0.0.2
 
