@@ -27,10 +27,10 @@ npm run dist
 
 ## [VERSION](HISTORY)
 
-### 0.0.1
+### 0.0.2
 
 [travis-image]: https://travis-ci.org/nhz-io/react-typo-component.svg
-[travis-url]: https://travis-ci.org/nhz-io/react-typo-component}
+[travis-url]: https://travis-ci.org/nhz-io/react-typo-component
 
 [npm-image]: https://img.shields.io/npm/v/react-typo-component.svg?style=flat
 [npm-url]: https://www.npmjs.com/package/react-typo-component
