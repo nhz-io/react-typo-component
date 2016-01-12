@@ -90,7 +90,19 @@ module.exports =
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 	var ctx = document.createElement('canvas').getContext('2d');
-	var fontProps = ['font-style', 'font-weight', 'height', 'font-family'];
+	var div = document.createElement('div');
+	var measureTextWidth = function measureTextWidth(text) {
+	  var font = arguments.length <= 1 || arguments[1] === undefined ? '16px Arial' : arguments[1];
+
+	  ctx.font = font;
+	  return ctx.measureText(text).width;
+	};
+	var max = function max(arr) {
+	  return Math.max.apply(Math, arr);
+	};
+	var MAXITERATIONS = 100;
+	var CONTAINERPROPS = ['font-style', 'font-weight', 'width', 'line-height', 'height', 'font-family', 'font-size'];
+	var FONTPROPS = ['font-style', 'font-weight', 'height', 'font-family'];
 
 	var ReactTypoComponent = (function (_React$Component) {
 	  _inherits(ReactTypoComponent, _React$Component);
@@ -102,39 +114,115 @@ module.exports =
 	  }
 
 	  _createClass(ReactTypoComponent, [{
-	    key: 'calculate',
-	    value: function calculate() {
-	      var container = this.refs.container;
-	      var children = this.props.children;
+	    key: 'getContainerComputedStyle',
+	    value: function getContainerComputedStyle() {
+	      var container = arguments.length <= 0 || arguments[0] === undefined ? this.refs.container : arguments[0];
+	      var properties = arguments.length <= 1 || arguments[1] === undefined ? CONTAINERPROPS : arguments[1];
 
-	      var text = children && children.toString();
-	      if (text && container) {
+	      if (container) {
 	        var _ret = (function () {
 	          var style = getComputedStyle(container);
-	          var width = parseFloat(style.getPropertyValue('width'));
-	          var height = parseFloat(style.getPropertyValue('height'));
-	          ctx.font = fontProps.map(function (p) {
-	            return style.getPropertyValue(p);
-	          }).join(' ');
-	          var ratio = width / ctx.measureText(text).width;
+	          var result = {};
+	          properties.forEach(function (p) {
+	            return result[p] = style.getPropertyValue(p);
+	          });
 	          return {
-	            v: ratio <= 1 ? height * ratio : height
+	            v: result
 	          };
 	        })();
 
 	        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	      }
-	      return 0;
+	    }
+	  }, {
+	    key: 'calculateFontSize',
+	    value: function calculateFontSize(text, style) {
+	      if (!style) {
+	        style = this.getContainerComputedStyle();
+	      }
+	      if (text && style) {
+	        var width = parseFloat(style.width) || 0;
+	        var ratio = parseFloat(style['font-size']) / (parseFloat(style['line-height']) || 0 || 1);
+	        var height = (parseFloat(style.height) || 0) * ratio;
+	        if (width && height && ratio) {
+	          style.height = height + 'px';
+	          var font = FONTPROPS.reduce(function (a, b, i) {
+	            return (i < 2 ? style[a] : a) + ' ' + style[b];
+	          });
+	          var textWidth = measureTextWidth(text, font);
+	          var count = 0;
+	          while (textWidth > width) {
+	            count++;
+	            if (count > MAXITERATIONS) {
+	              break;
+	            }
+	            height = height * width / (textWidth * 1.01);
+	            style.height = height + 'px';
+	            font = FONTPROPS.reduce(function (a, b, i) {
+	              return (i < 2 ? style[a] : a) + ' ' + style[b];
+	            });
+	            textWidth = measureTextWidth(text, font);
+	          }
+	          return parseFloat(height) || null;
+	        }
+	      }
+	      return null;
+	    }
+	  }, {
+	    key: 'calculate',
+	    value: function calculate(content) {
+	      if (content) {
+	        var lines = content.split(/\n/);
+	        var style = this.getContainerComputedStyle();
+	        style.height = parseFloat(style.height) / lines.length + 'px';
+	        var measurements = lines.map(function (l) {
+	          return measureTextWidth(l);
+	        });
+	        var text = lines[measurements.indexOf(max(measurements))];
+	        return this.calculateFontSize(text, style);
+	      }
+	      return null;
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
 	      var props = this.props;
+	      var refs = this.refs;
+	      var content = props.content;
+	      var norender = props.norender;
+	      var raw = props.raw;
+	      var wrap = props.wrap;
+	      var container = refs.container;
 
-	      var fontSize = this.calculate();
-	      var style = { fontSize: fontSize, lineHeight: fontSize + 'px' };
+	      var style = null,
+	          fontSize = null;
+	      if (container) {
+	        if (content && raw) {
+	          fontSize = this.calculate(content);
+	        } else if (content) {
+	          div.innerHTML = content;
+	          fontSize = this.calculate(div.innerText);
+	        } else if (container) {
+	          fontSize = this.calculate(container.innerText);
+	        }
+	        style = { fontSize: fontSize };
+	      }
+	      if (norender && content) {
+	        return _react2.default.createElement(
+	          'p',
+	          _extends({ ref: 'container' }, props, { style: style }),
+	          props.children
+	        );
+	      } else if (content) {
+	        return _react2.default.createElement('p', _extends({
+	          ref: 'container'
+	        }, props, {
+	          style: style,
+	          dangerouslySetInnerHTML: this.renderRawContent(content)
+	        }));
+	      }
 	      return _react2.default.createElement(
-	        'div',
+	        'p',
 	        _extends({ ref: 'container' }, props, { style: style }),
 	        props.children
 	      );
@@ -143,6 +231,11 @@ module.exports =
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      this.forceUpdate();
+	    }
+	  }, {
+	    key: 'renderRawContent',
+	    value: function renderRawContent(content) {
+	      return { __html: content || '' };
 	    }
 	  }]);
 

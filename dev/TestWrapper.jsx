@@ -5,7 +5,7 @@ export default class TestWrapper extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { value: 'foobar' };
+    this.state = { value: 'Type your stuff here' };
     this.handleResize = this.handleResize.bind(this);
   }
 
@@ -18,8 +18,11 @@ export default class TestWrapper extends React.Component {
   render() {
     return(
       <div style={{width:'100%', height: '100%'}}>
-      <Typo className='typo'>{this.state.value}</Typo><br/>
-      <textarea onChange={({target:{value}}) => { this.setState({value}) }} style={{width:'30%', height:'20%'}} value={this.state.value} />
+        <Typo className='typo'><span style={{display:'inline-block', verticalAlign:'middle'}}>Multiline<br/>Autosizing<br/>Example</span></Typo>
+        <Typo className='typo' norender={true} raw={true} content={this.state.value}>
+          <textarea wrap='soft' style={{width:'100%', height:'100%'}} onChange={({target:{value}}) => this.setState({value})} defaultValue={this.state.value}/>
+        </Typo>
+        <Typo className='typo' content={`<span class="wrap">${this.state.value.replace(/\n/gmi, '<br>')}</span>`}/>
       </div>
     );
   }

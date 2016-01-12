@@ -1,72 +1,102 @@
 import React from 'react';
 const ctx = document.createElement('canvas').getContext('2d');
-const measureTextWidth = function (text, font) {
+const div = document.createElement('div');
+const measureTextWidth = function (text, font = '16px Arial') {
   ctx.font = font;
   return ctx.measureText(text).width;
 }
-
+const max = function(arr) { return Math.max.apply(Math, arr) };
+const MAXITERATIONS = 100;
 const CONTAINERPROPS = [
-  'font-style', 'font-weight', 'width', 'line-height', 'height', 'font-family'
+  'font-style', 'font-weight', 'width',
+  'line-height', 'height', 'font-family', 'font-size'
 ];
 const FONTPROPS = [
   'font-style', 'font-weight', 'height', 'font-family'
 ]
 
 export default class ReactTypoComponent extends React.Component {
-  getContainerComputedStyle(properties = CONTAINERPROPS) {
-    const { container } = this.refs;
-    const style = getComputedStyle(container);
-    let result = {};
-    properties.forEach(p => result[p] = style.getPropertyValue(p));
-    return result;
+  getContainerComputedStyle(container = this.refs.container, properties = CONTAINERPROPS) {
+    if(container) {
+      const style = getComputedStyle(container);
+      let result = {};
+      properties.forEach(p => result[p] = style.getPropertyValue(p));
+      return result;
+    }
   }
 
-  calculateContainerFontSize(children = this.props.children) {
-    console.log('------------------------------');
-    const { container } = this.refs;
-    const text = children && children.toString();
-    if(text && container) {
-      let style = this.getContainerComputedStyle()
-      let width = parseInt(style.width) - 1;
-      console.log(`% Container width: ${width}`);
-      let height = parseInt(style.height);
-      console.log('% Container Height', style.height);
-      let font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
-      console.log("% Font:", font);
-      let textWidth = measureTextWidth(text, font);
-      console.log("% Text width:", textWidth);
-      let counter = 0;
-
-      while(textWidth > width) {
-        counter++;
-        if(counter > 10) { break };
-        console.log(`******************\nIteration: ${counter}`);
-        let ratio = width / textWidth;
-        console.log('% Ratio', ratio);
-        style.height = parseInt(style.height) * ratio + 'px';
-        console.log('% Height', style.height);
-        font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
-        console.log("% Font:", font);
-        textWidth = measureTextWidth(text, font);
-        console.log("% Container width:", width);
-        console.log("% Text width:", textWidth);
-        console.log("% Font size:", style.height);
+  calculateFontSize(text, style) {
+    if(!style) { style = this.getContainerComputedStyle() }
+    if(text && style) {
+      let width = parseFloat(style.width) || 0;
+      let ratio = parseFloat(style['font-size'])/((parseFloat(style['line-height']) || 0) || 1);
+      let height = (parseFloat(style.height) || 0) * ratio;
+      if(width && height && ratio) {
+        style.height = height + 'px';
+        let font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
+        let textWidth = measureTextWidth(text, font);
+        let count = 0;
+        while (textWidth > width) {
+          count++;
+          if(count > MAXITERATIONS) { break }
+          height = height * width / (textWidth*1.01);
+          style.height = height + 'px';
+          font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
+          textWidth = measureTextWidth(text, font);
+        }
+        return parseFloat(height) || null;
       }
-      console.log("% Font size:", style.height);
-
-      return parseInt(style.height);
     }
-    return 0;
+    return null;
+  }
+
+  calculate(content) {
+    if(content) {
+      let lines = content.split(/\n/);
+      let style = this.getContainerComputedStyle();
+      style.height = parseFloat(style.height)/lines.length + 'px';
+      let measurements = lines.map(l => measureTextWidth(l));
+      let text = lines[measurements.indexOf(max(measurements))];
+      return this.calculateFontSize(text, style);
+    }
+    return null;
   }
 
   render() {
-    console.log("CHILDREN", this.props.children);
-    const { props } = this;
-    const fontSize = this.calculateContainerFontSize();
-    console.log("FONT SIZE", fontSize);
-    const style = { fontSize, lineHeight: fontSize + 'px' };
-    return <div ref='container' {...props} style={style}>{props.children}</div>;
+    const { props, refs } = this;
+    let { content, norender, raw, wrap } = props;
+    const { container } = refs;
+    let style = null, fontSize = null;
+    if(container) {
+      if(content && raw) {
+        fontSize = this.calculate(content)
+      }
+      else if(content) {
+        div.innerHTML = content;
+        fontSize = this.calculate(div.innerText);
+      }
+      else if(container) {
+        fontSize = this.calculate(container.innerText);
+      }
+      style = { fontSize };
+    }
+    if(norender && content) {
+      return <p ref='container' {...props} style={style}>{props.children}</p>;
+    }
+    else if(content) {
+      return(
+        <p
+          ref='container'
+          {...props}
+          style={style}
+          dangerouslySetInnerHTML={this.renderRawContent(content)}
+        />
+      )
+    }
+    return <p ref='container' {...props} style={style}>{props.children}</p>;
   }
 
   componentDidMount() { this.forceUpdate(); }
+
+  renderRawContent(content) { return { __html: content || '' } }
 }
