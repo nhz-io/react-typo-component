@@ -27,7 +27,7 @@ npm run dist
 
 ## [VERSION](HISTORY.md)
 
-### 0.0.4
+### 0.0.5
 
 [travis-image]: https://travis-ci.org/nhz-io/react-typo-component.svg
 [travis-url]: https://travis-ci.org/nhz-io/react-typo-component

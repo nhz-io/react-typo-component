@@ -1,10 +1,18 @@
 language: node_js
 node_js:
-- "0.11"
-- "0.12"
-- "iojs"
-- "4.2"
-- "5.1"
-matrix:
+- '0.11'
+- '0.12'
+- iojs
+- '4.2'
+- '5.1'
+matrix: 
 fast_finish: true
-script: "npm run-script dist"
+script: npm run-script dist
+deploy:
+  provider: npm
+  email: dev@nhz.io
+  api_key:
+    secure: Gds4NviUcF/PbqDDsIN4IgldsVvt3rlKaQE3/JroJUANUMOrcyXpE3T8hrNmI9+qscQ7jRjGg4IEQh3pzf1Xg6LEkoe9BphQQy879cl74aRpiws9cvqbX0sFullK1dgaToiQlgnr4oibrF1ap9q4ZRonSM/9kkMISDHT+yeAVtigQ89Csg6hMjhkXOPFjxEebmpMJAXvRFH3GcFXRtEZLWG/aoQkxWgktWtIWamAfKTkF0pjxnx3bal0ZJqcW9OFYt/NZAWoCPrL2ngOs14+ImopZ1rzbP8IBCdP82w4j5QAik4znn8VBbLpFJOkEPhvLnrBF8TfmVLWY5N7bGSn7dsQrZ+OSIxod3M6MzgaU6oqJNWJtEdBrA20W+hhdJm8JoyzoXJU2VpMphr0UcW76fLEsOTtsKmqR9+DmsDHSPRgWujRybi9fP2AXGf7EmFlqlgWcRd4kfL/3P17tCVoB6PRx5tnyAEqz+q5TDl709AhptbmVChmTvBxfAANsHkwC1ZXWUxIR3I0CWhxHeMy4+xYRsvwf0qouOye9UvmCFdvqaJeWs0OefNVAf62ryyiF0na28vXDFJ4tIJK/HpFGbY2Wb3drbBKjRiZ6kB9JrZoUb2k+4g/ow3cAuYQf90MI1NmgfM+UpL1H5WXZHoxmZIg52g7ggnLb7S4j+FH6gY=
+  on:
+    tags: true
+    repo: nhz-io/react-typo-component

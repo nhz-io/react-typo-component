@@ -1,4 +1,7 @@
 # History
+## 0.0.5
+* added travis npm autodeployment config
+
 ## 0.0.4
 * Workaround for missing innerText in mozilla
 
