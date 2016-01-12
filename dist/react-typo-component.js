@@ -69,7 +69,9 @@ module.exports =
 
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
@@ -80,8 +82,6 @@ module.exports =
 	var _react2 = _interopRequireDefault(_react);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _typeof(obj) { return obj && typeof Symbol !== "undefined" && obj.constructor === Symbol ? "symbol" : typeof obj; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -104,7 +104,7 @@ module.exports =
 	var CONTAINERPROPS = ['font-style', 'font-weight', 'width', 'line-height', 'height', 'font-family', 'font-size'];
 	var FONTPROPS = ['font-style', 'font-weight', 'height', 'font-family'];
 
-	var ReactTypoComponent = (function (_React$Component) {
+	var ReactTypoComponent = function (_React$Component) {
 	  _inherits(ReactTypoComponent, _React$Component);
 
 	  function ReactTypoComponent() {
@@ -120,7 +120,7 @@ module.exports =
 	      var properties = arguments.length <= 1 || arguments[1] === undefined ? CONTAINERPROPS : arguments[1];
 
 	      if (container) {
-	        var _ret = (function () {
+	        var _ret = function () {
 	          var style = getComputedStyle(container);
 	          var result = {};
 	          properties.forEach(function (p) {
@@ -129,7 +129,7 @@ module.exports =
 	          return {
 	            v: result
 	          };
-	        })();
+	        }();
 
 	        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	      }
@@ -142,7 +142,7 @@ module.exports =
 	      }
 	      if (text && style) {
 	        var width = parseFloat(style.width) || 0;
-	        var ratio = parseFloat(style['font-size']) / (parseFloat(style['line-height']) || 0 || 1);
+	        var ratio = parseFloat(style['font-size']) / (parseFloat(style['line-height']) || 1);
 	        var height = (parseFloat(style.height) || 0) * ratio;
 	        if (width && height && ratio) {
 	          style.height = height + 'px';
@@ -192,33 +192,40 @@ module.exports =
 	      var norender = props.norender;
 	      var raw = props.raw;
 	      var wrap = props.wrap;
+
+	      var _content = content;
 	      var container = refs.container;
 
 	      var style = null,
 	          fontSize = null;
 	      if (container) {
+	        if (!content) {
+	          content = container.innerHTML;
+	          raw = false;
+	        }
 	        if (content && raw) {
 	          fontSize = this.calculate(content);
 	        } else if (content) {
 	          div.innerHTML = content;
-	          fontSize = this.calculate(div.innerText);
-	        } else if (container) {
-	          fontSize = this.calculate(container.innerText);
+	          if (content && !div.innerText) {
+	            div.innerHTML = content.replace(/\<br[^\>]*?(\/\>|\>(.*?\(<\/br\>)?)/gmi, '\n<br></br>');
+	          }
+	          fontSize = this.calculate(div.innerText || div.textContent);
 	        }
 	        style = { fontSize: fontSize };
 	      }
-	      if (norender && content) {
+	      if (norender && _content) {
 	        return _react2.default.createElement(
 	          'p',
 	          _extends({ ref: 'container' }, props, { style: style }),
 	          props.children
 	        );
-	      } else if (content) {
+	      } else if (_content) {
 	        return _react2.default.createElement('p', _extends({
 	          ref: 'container'
 	        }, props, {
 	          style: style,
-	          dangerouslySetInnerHTML: this.renderRawContent(content)
+	          dangerouslySetInnerHTML: this.renderRawContent(_content)
 	        }));
 	      }
 	      return _react2.default.createElement(
@@ -240,7 +247,7 @@ module.exports =
 	  }]);
 
 	  return ReactTypoComponent;
-	})(_react2.default.Component);
+	}(_react2.default.Component);
 
 	exports.default = ReactTypoComponent;
 

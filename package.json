@@ -1,6 +1,6 @@
 {
   "name": "react-typo-component",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Auto-Scaling typography component for React",
   "repository": {
     "type": "git",
@@ -11,11 +11,13 @@
   },
   "homepage": "https://github.com/nhz-io/react-typo-component",
   "author": "Ishi Ruy <dev@nhz.io>",
-  "contributors": [{
-    "name": "Ishi Ruy",
-    "email": "dev@nhz.io",
-    "url": "https://github.com/nhz-io"
-  }],
+  "contributors": [
+    {
+      "name": "Ishi Ruy",
+      "email": "dev@nhz.io",
+      "url": "https://github.com/nhz-io"
+    }
+  ],
   "keywords": [
     "nhz-io",
     "nhz.io",
@@ -46,11 +48,14 @@
     "babel": "^6.3.26",
     "babel-cli": "^6.3.17",
     "babel-core": "^6.3.26",
+    "babel-helper-explode-class": "^6.3.13",
     "babel-loader": "^6.2.0",
+    "babel-plugin-transform-es2015-unicode-regex": "^6.3.13",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-react": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
     "babel-preset-stage-1": "^6.3.13",
+    "babel-template": "^6.3.13",
     "css-loader": "^0.23.1",
     "file-loader": "^0.8.5",
     "html-webpack-plugin": "^1.7.0",

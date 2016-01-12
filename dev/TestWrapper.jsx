@@ -18,11 +18,10 @@ export default class TestWrapper extends React.Component {
   render() {
     return(
       <div style={{width:'100%', height: '100%'}}>
-        <Typo className='typo'><span style={{display:'inline-block', verticalAlign:'middle'}}>Multiline<br/>Autosizing<br/>Example</span></Typo>
+        <Typo className='typo hidden'><span style={{verticalAlign:'middle'}}>Multiline<br></br>Autosizing<br/>Example</span></Typo>
         <Typo className='typo' norender={true} raw={true} content={this.state.value}>
-          <textarea wrap='soft' style={{width:'100%', height:'100%'}} onChange={({target:{value}}) => this.setState({value})} defaultValue={this.state.value}/>
+            <textarea wrap='soft' style={{width:'100%', height:'100%'}} onChange={({target:{value}}) => this.setState({value})} defaultValue={this.state.value}/>
         </Typo>
-        <Typo className='typo' content={`<span class="wrap">${this.state.value.replace(/\n/gmi, '<br>')}</span>`}/>
       </div>
     );
   }

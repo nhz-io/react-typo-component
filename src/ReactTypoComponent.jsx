@@ -29,7 +29,7 @@ export default class ReactTypoComponent extends React.Component {
     if(!style) { style = this.getContainerComputedStyle() }
     if(text && style) {
       let width = parseFloat(style.width) || 0;
-      let ratio = parseFloat(style['font-size'])/((parseFloat(style['line-height']) || 0) || 1);
+      let ratio = parseFloat(style['font-size'])/(parseFloat(style['line-height']) || 1);
       let height = (parseFloat(style.height) || 0) * ratio;
       if(width && height && ratio) {
         style.height = height + 'px';
@@ -65,31 +65,36 @@ export default class ReactTypoComponent extends React.Component {
   render() {
     const { props, refs } = this;
     let { content, norender, raw, wrap } = props;
+    const _content = content;
     const { container } = refs;
     let style = null, fontSize = null;
     if(container) {
+      if(!content) {
+        content = container.innerHTML;
+        raw = false;
+      }
       if(content && raw) {
-        fontSize = this.calculate(content)
+        fontSize = this.calculate(content);
       }
       else if(content) {
         div.innerHTML = content;
-        fontSize = this.calculate(div.innerText);
-      }
-      else if(container) {
-        fontSize = this.calculate(container.innerText);
+        if(content && !div.innerText) {
+          div.innerHTML = content.replace(/\<br[^\>]*?(\/\>|\>(.*?\(<\/br\>)?)/gmi, '\n<br></br>')
+        }
+        fontSize = this.calculate(div.innerText || div.textContent);
       }
       style = { fontSize };
     }
-    if(norender && content) {
+    if(norender && _content) {
       return <p ref='container' {...props} style={style}>{props.children}</p>;
     }
-    else if(content) {
+    else if(_content) {
       return(
         <p
           ref='container'
           {...props}
           style={style}
-          dangerouslySetInnerHTML={this.renderRawContent(content)}
+          dangerouslySetInnerHTML={this.renderRawContent(_content)}
         />
       )
     }
