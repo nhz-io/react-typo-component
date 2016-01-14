@@ -32,7 +32,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js",
-    "dist": "node node_modules/webpack/bin/webpack.js"
+    "dist": "node node_modules/webpack/bin/webpack.js",
+    "gh-pages": "node node_modules/webpack/bin/webpack.js"
   },
   "babel": {
     "presets": [
@@ -70,6 +71,7 @@
     "webpack-dev-server": "^1.14.0"
   },
   "dependencies": {
+    "nhz-throttle": "0.0.5",
     "react": "^0.14.5",
     "react-dom": "^0.14.5"
   }

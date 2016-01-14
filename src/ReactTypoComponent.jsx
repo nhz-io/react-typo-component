@@ -1,107 +1,98 @@
 import React from 'react';
-const ctx = document.createElement('canvas').getContext('2d');
-const div = document.createElement('div');
-const measureTextWidth = function (text, font = '16px Arial') {
-  ctx.font = font;
-  return ctx.measureText(text).width;
-}
-const max = function(arr) { return Math.max.apply(Math, arr) };
-const MAXITERATIONS = 100;
-const CONTAINERPROPS = [
-  'font-style', 'font-weight', 'width',
-  'line-height', 'height', 'font-family', 'font-size'
-];
-const FONTPROPS = [
-  'font-style', 'font-weight', 'height', 'font-family'
-]
+
+const
+  $ = document.createElement('div'),
+  f  = () => parseFloat($.style.fontSize) || 0,
+  dw = () =>  ($.clientWidth || 0) * (1 + Math.log(f() || 0)/100),
+  dh = () =>  ($.clientHeight || 0) * (1 + Math.log(f() || 0)/100),
+  cw = (_) => _.clientWidth,
+  ch = (_) => _.clientHeight,
+  reset = {
+    display       : 'inline-block',
+    position      : 'fixed',
+    top           : '-9999px',
+    left          : '-9999px',
+    zIndex        : '-9999',
+    width         : 'auto',
+    height        : 'auto',
+    lineHeight    : '1.25em',
+    transform     : 'none',
+    padding       : 0,
+    paddingTop    : 0,
+    paddingBottom : 0,
+    paddingLeft   : 0,
+    paddingRight  : 0,
+    border        : 'none',
+    whiteSpace    : 'normal'
+  };
+
+for(let key in reset) { $.style[key] = reset[key] }
 
 export default class ReactTypoComponent extends React.Component {
-  getContainerComputedStyle(container = this.refs.container, properties = CONTAINERPROPS) {
-    if(container) {
-      const style = getComputedStyle(container);
-      let result = {};
-      properties.forEach(p => result[p] = style.getPropertyValue(p));
-      return result;
-    }
+  constructor(props) {
+    super(props);
+    if(!$.parentElement) { document.body.appendChild($) }
   }
 
-  calculateFontSize(text, style) {
-    if(!style) { style = this.getContainerComputedStyle() }
-    if(text && style) {
-      let width = parseFloat(style.width) || 0;
-      let ratio = parseFloat(style['font-size'])/(parseFloat(style['line-height']) || 1);
-      let height = (parseFloat(style.height) || 0) * ratio;
-      if(width && height && ratio) {
-        style.height = height + 'px';
-        let font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
-        let textWidth = measureTextWidth(text, font);
-        let count = 0;
-        while (textWidth > width) {
-          count++;
-          if(count > MAXITERATIONS) { break }
-          height = height * width / (textWidth*1.01);
-          style.height = height + 'px';
-          font = FONTPROPS.reduce((a,b,i) => (i<2?style[a]:a) + ' ' + style[b]);
-          textWidth = measureTextWidth(text, font);
-        }
-        return parseFloat(height) || null;
+  calculateFontSize(_) {
+    if(_) {
+      $.style.fontSize = '16px';
+      const { content, measure, children } = this.props;
+
+      $.innerHTML = content || measure ? content || measure : _.innerHTML;
+
+      let limit = 1;
+      do { $.style.fontSize = f() * cw(_) / dw() + 'px' }
+      while(limit++ < 10 && (dw() / cw(_)) > 1);
+
+      limit = 1;
+      while(limit++ < 10 && (dh() / ch(_)) > 1) {
+        $.style.fontSize = f() * ch(_) / dh() + 'px';
       }
+      //$.innerHTML = '';
     }
-    return null;
+    return f() + 'px';
   }
 
-  calculate(content) {
-    if(content) {
-      let lines = content.split(/\n/);
-      let style = this.getContainerComputedStyle();
-      style.height = parseFloat(style.height)/lines.length + 'px';
-      let measurements = lines.map(l => measureTextWidth(l));
-      let text = lines[measurements.indexOf(max(measurements))];
-      return this.calculateFontSize(text, style);
-    }
-    return null;
-  }
+  componentDidMount() { this.forceUpdate() }
 
   render() {
-    const { props, refs } = this;
-    let { content, norender, raw, wrap } = props;
-    const _content = content;
-    const { container } = refs;
-    let style = null, fontSize = null;
-    if(container) {
-      if(!content) {
-        content = container.innerHTML;
-        raw = false;
+    const
+      { props, refs }      = this,
+      { container }        = refs,
+      { content, measure, children } = props,
+      style = Object.assign({}, props.style),
+      _ = container;
+
+    window.wtf = this;
+
+    if(_) {
+      style.fontSize = this.calculateFontSize(_);
+      this._previousFontSize = style.fontSize;
+
+      if(content) {
+        return <div
+            {...props}
+            style={style}
+            ref='container'
+            dangerouslySetInnerHTML={this.renderRawContent(content)}
+          />
       }
-      if(content && raw) {
-        fontSize = this.calculate(content);
-      }
-      else if(content) {
-        div.innerHTML = content;
-        if(content && !div.innerText) {
-          div.innerHTML = content.replace(/\<br[^\>]*?(\/\>|\>(.*?\(<\/br\>)?)/gmi, '\n<br></br>')
-        }
-        fontSize = this.calculate(div.innerText || div.textContent);
-      }
-      style = { fontSize };
+
+      else { return <div {...props} style={style} ref='container'>{children}</div> }
     }
-    if(norender && _content) {
-      return <p ref='container' {...props} style={style}>{props.children}</p>;
-    }
-    else if(_content) {
-      return(
-        <p
-          ref='container'
+
+    else if(content) {
+      return <div
           {...props}
           style={style}
-          dangerouslySetInnerHTML={this.renderRawContent(_content)}
+          ref='container'
+          dangerouslySetInnerHTML={this.renderRawContent(content)}
         />
-      )
     }
-    return <p ref='container' {...props} style={style}>{props.children}</p>;
-  }
 
-  componentDidMount() { this.forceUpdate(); }
+    else { return <div {...props} style={style} ref='container'>{children}</div> }
+  }
 
   renderRawContent(content) { return { __html: content || '' } }
 }
